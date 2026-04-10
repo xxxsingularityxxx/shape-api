@@ -22,8 +22,10 @@ public class ShapeController {
 
     @PostMapping("/learn")
     public Map<String, String> learn(@RequestBody Map<String, Object> payload) {
+        // เช็กบรรทัดล่างนี้ครับ ห้ามมีคำว่า key: หรือวงเล็บแปลกๆ
         int sides = Integer.parseInt(payload.get("sides").toString());
-        String name = payload.get("name").toString();
+        String name = payload.get("name").toString(); 
+        
         shapeDb.put(sides, name);
         return Map.of("status", "เรียนรู้แล้ว: " + name);
     }
