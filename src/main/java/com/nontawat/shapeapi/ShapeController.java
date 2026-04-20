@@ -1,32 +1,35 @@
 package com.nontawat.shapeapi;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.Collections;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "*") // ต้องมีบรรทัดนี้เพื่อให้ Chrome คุยกับ Java ได้ครับ
+@CrossOrigin(origins = "*")
 public class ShapeController {
 
-    private Map<Integer, String> shapeDb = new HashMap<>() {{
-        put(0, "วงกลม");
-        put(3, "สามเหลี่ยม");
-        put(4, "สี่เหลี่ยม");
-    }};
+    @Autowired
+    private ShapeRepository shapeRepository;
 
     @GetMapping("/predict")
     public Map<String, String> predict(@RequestParam int sides) {
-        String result = shapeDb.getOrDefault(sides, "ไม่รู้จักตัวตน");
-        return Map.of("name", result);
+        String name = shapeRepository.findById(sides)
+                .map(Shape::getName)
+                .orElse("ไม่รู้จักรูปทรงนี้");
+        return Collections.singletonMap("name", name);
     }
 
     @PostMapping("/learn")
-    public Map<String, String> learn(@RequestBody Map<String, Object> payload) {
-        // เช็กบรรทัดล่างนี้ครับ ห้ามมีคำว่า key: หรือวงเล็บแปลกๆ
-        int sides = Integer.parseInt(payload.get("sides").toString());
-        String name = payload.get("name").toString(); 
-        
-        shapeDb.put(sides, name);
-        return Map.of("status", "เรียนรู้แล้ว: " + name);
+    public Map<String, String> learn(@RequestBody Shape newShape) {
+        shapeRepository.save(newShape); // บันทึกลง Supabase ทันที!
+        return Collections.singletonMap("status", "success");
+    }
+    
+    @GetMapping("/all")
+    public List<Shape> getAll() {
+        return shapeRepository.findAll(); // ดึงข้อมูลทั้งหมดมาดู
     }
 }
